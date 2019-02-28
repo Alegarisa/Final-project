@@ -1,0 +1,143 @@
+---
+title: "Data Viz for peer review"
+author: "Alejandra Garcia Isaza"
+date: "February 27, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(rio)
+library(here)
+library(dplyr)
+library(gghighlight)
+
+theme_set(theme_minimal(base_size = 15))
+
+```
+
+
+```{r}
+
+d <- import(here("data", "alejandra-sim.csv"), setclass = "tbl_df") 
+
+# editing names
+d <- rename(d, treatment = c("group"), agew1 = c("md1age"), agew8 = c("md8age"), maltxrecs = c("total_number_maltx_records"), placechange = c("pre_b_lplacechanges"), severitymaltx = c("severitymn"), totcupsgain = c("cup_agrto"), totcupsloss = c("cup_alrto"))
+
+```
+
+
+```{r, message = FALSE}
+
+# Exploring variables of interest
+
+ggplot(d, aes(placechange)) +
+  geom_histogram()
+
+ggplot(d, aes(severitymaltx)) +
+  geom_histogram()
+
+ggplot(d, aes(maltxrecs)) +
+  geom_histogram()
+
+ggplot(d, aes(age1removal)) +
+  geom_histogram()
+
+```
+
+
+```{r, fig.height= 8, fig.width=10}
+
+tidy_d <- d %>%
+  gather(type, count, 10:17)
+
+ggplot(tidy_d, aes(type, count)) +
+  geom_point() 
+
+tidy_d <- tidy_d %>%
+  mutate(family = factor(family),
+         type = factor(type),
+         type = fct_recode(type,
+                           "Physical Abuse" = "pabu_sm",
+                            "Sexual Abuse" = "sabu_sm",
+                            "Physical Neglect" = "ftp_sm",
+                            "Supervisory Neglect" = "los_sm",
+                           "Emotional Abuse" = "emtx_sm",
+                            "Social Neglect" = "mle_sm",
+                            "Indirect Parent Behavior" = "ipb_sm",
+                            "Non-codables" = "miss_sm"))
+
+
+
+ggplot(tidy_d, aes(fct_reorder(type, count), count)) +
+  geom_point(aes(color = family), position = "jitter") +
+  labs(title = "Types and Frequency of Maltreatment Experienced by each Girl",
+       subtitle = "Each Girl Represented by a Color",
+       y = "Number of Maltreatment Records",
+       x = "Type of Maltreatment") +
+   guides(color = FALSE) +
+  facet_wrap(~ treatment, ncol = 1) +
+  coord_flip()
+
+# The goal of this plot is to visualize the frequency of each type of maltreatment, but making the point that each girl usually experiences more than one type of maltreatment. 
+
+```
+
+```{r, fig.height= 8, fig.width=10}
+
+ggplot(d, aes(age1removal, placechange)) +
+  geom_point()
+  
+  
+ggplot(d, aes(age1removal, placechange)) +
+  geom_point(color = "#9516A1") +
+  gghighlight(age1removal <= 6)
+
+  
+ggplot(d, aes(age1removal, placechange)) +
+  geom_point(color = "#9516A1") +
+  gghighlight(placechange >= 6) +
+  labs(title = "Relationship Between Placement Changes and Age of First Removal",
+       subtitle = "High Number of Placement Changes Highlighted",
+       y = "Number of Placement Changes",
+       x = "Age of Girl when First Removed from Original Home")
+
+```
+
+
+```{r, fig.height= 8, fig.width=10}
+# Average of risky choices made to seek gains and to avoid losses
+
+tidy_d2 <- d %>%
+  gather(valence, number, 22:23)
+
+tidy_d2 <- tidy_d2 %>%
+  mutate(valence = factor(valence),
+         family = factor(family))
+
+
+ggplot(tidy_d2, aes(valence, number)) +
+  geom_col() +
+  facet_wrap(~ treatment)
+
+d2 <- d %>%
+  select(family, treatment, totcupsgain, totcupsloss) %>%
+  group_by(treatment) %>%
+  mutate(`Seek gains` = mean(totcupsgain, na.rm = TRUE),
+         `Avoid losses` = mean(totcupsloss, na.rm = TRUE))
+
+d2 <- d2 %>%
+  gather(avg, value, -1:-4)
+
+ggplot(d2, aes(avg, value)) +
+  geom_col(fill = "cornflowerblue") + # I don't know why the y-axis goes until 750 if I already calculated the averages.
+  facet_wrap(~ treatment) + 
+  labs(title = "Average of Risky Choices made to Seek Gains and To avoid Losses by Treatment Condition",
+       subtitle = "Decision Making Assessed with CUPS Task",
+       y = "Average of Risky Choices",
+       x = "")
+
+```
+
