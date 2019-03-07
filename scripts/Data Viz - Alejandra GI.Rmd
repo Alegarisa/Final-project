@@ -18,7 +18,6 @@ theme_set(theme_minimal(base_size = 15))
 
 ```
 
-
 ```{r}
 
 d <- import(here("data", "alejandra-sim.csv"), setclass = "tbl_df") 
@@ -27,7 +26,6 @@ d <- import(here("data", "alejandra-sim.csv"), setclass = "tbl_df")
 d <- rename(d, treatment = c("group"), agew1 = c("md1age"), agew8 = c("md8age"), maltxrecs = c("total_number_maltx_records"), placechange = c("pre_b_lplacechanges"), severitymaltx = c("severitymn"), totcupsgain = c("cup_agrto"), totcupsloss = c("cup_alrto"))
 
 ```
-
 
 ```{r, message = FALSE}
 
@@ -43,10 +41,11 @@ ggplot(d, aes(maltxrecs)) +
   geom_histogram()
 
 ggplot(d, aes(age1removal)) +
-  geom_histogram()
+  geom_histogram() 
+
+#AF: This was a cool addition to have prior to digging into your visualizations!
 
 ```
-
 
 ```{r, fig.height= 8, fig.width=10}
 
@@ -67,7 +66,7 @@ tidy_d <- tidy_d %>%
                            "Emotional Abuse" = "emtx_sm",
                             "Social Neglect" = "mle_sm",
                             "Indirect Parent Behavior" = "ipb_sm",
-                            "Non-codables" = "miss_sm"))
+                            "Non-codables" = "miss_sm")) #Nice clean/efficient code!
 
 
 
@@ -83,11 +82,13 @@ ggplot(tidy_d, aes(fct_reorder(type, count), count)) +
 
 # The goal of this plot is to visualize the frequency of each type of maltreatment, but making the point that each girl usually experiences more than one type of maltreatment. 
 
+#AF: Great plot overall--the labels and axes are easy to understand. Since there is so much overlap between the individual points, it's hard to really tell for me how many different types of maltreatment each girl is experiencing. Maybe jitter could be helpful in this situation. What are your thoughts? Out of curiosity, what is an example of maltreament that falls within the "non-codables"? 
+
 ```
 
 ```{r, fig.height= 8, fig.width=10}
 
-ggplot(d, aes(age1removal, placechange)) +
+ggplot(d, aes(age1removal, placechange)) + #I think your code is efficient and clear, but perhaps you could also benefit from labeling each section with what you are doing (to make even more clear!)
   geom_point()
   
   
@@ -104,8 +105,8 @@ ggplot(d, aes(age1removal, placechange)) +
        y = "Number of Placement Changes",
        x = "Age of Girl when First Removed from Original Home")
 
+#AF: Great job overall! The plot is easy to understand, even from someone outside your field. For that reason, this is perfect for either the scientific community/general audience (Nice versatility!). While girls with a high number of placement are highlighted, I think the other datapoints are a bit hard to see. Perhaps, you could change them to a difference color that is still distinct from the "high" group?
 ```
-
 
 ```{r, fig.height= 8, fig.width=10}
 # Average of risky choices made to seek gains and to avoid losses
@@ -126,7 +127,7 @@ d2 <- d %>%
   select(family, treatment, totcupsgain, totcupsloss) %>%
   group_by(treatment) %>%
   mutate(`Seek gains` = mean(totcupsgain, na.rm = TRUE),
-         `Avoid losses` = mean(totcupsloss, na.rm = TRUE))
+         `Avoid losses` = mean(totcupsloss, na.rm = TRUE)) #What do the quote marks do here? I may have learned a new shortcut while mutating variables, if that's the case
 
 d2 <- d2 %>%
   gather(avg, value, -1:-4)
@@ -134,10 +135,12 @@ d2 <- d2 %>%
 ggplot(d2, aes(avg, value)) +
   geom_col(fill = "cornflowerblue") + # I don't know why the y-axis goes until 750 if I already calculated the averages.
   facet_wrap(~ treatment) + 
-  labs(title = "Average of Risky Choices made to Seek Gains and To avoid Losses by Treatment Condition",
+  labs(title = "Average of Risky Choices made to Seek Gains and To avoid Losses by Treatment Condition", #AF: The capitalize is a little inconsistent here, but otherwise a descriptive title
        subtitle = "Decision Making Assessed with CUPS Task",
-       y = "Average of Risky Choices",
+       y = "Average of Risky Choices", #AF: Average score, or number of choices (or both)?
        x = "")
+
+#AF: Nice simple plot, with very little cognitive load (due to the clarity)! I wonder if you could pursue another perspective by having the "avoid losses" and "seek gains" juxtaposition between the groups. I think that this change could make the audience more easily see the difference in each type of decision making for the two groups.
 
 ```
 
